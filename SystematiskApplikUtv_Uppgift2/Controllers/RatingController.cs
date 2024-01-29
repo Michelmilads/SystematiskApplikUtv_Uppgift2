@@ -7,5 +7,6 @@ namespace SystematiskApplikUtv_Uppgift2.Controllers
     [ApiController]
     public class RatingController : ControllerBase
     {
+
     }
 }
