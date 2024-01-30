@@ -1,9 +1,10 @@
 ﻿using Microsoft.Data.SqlClient;
+using SystematiskApplikUtv_Uppgift2.Repository.Interfaces;
 using static SystematiskApplikUtv_Uppgift2.Repository.DatabaseConnection;
 
 namespace SystematiskApplikUtv_Uppgift2.Repository
 {
-    public class DatabaseConnection
+    public class DatabaseConnection : IDatabaseConnection
     {
         
         private readonly string? _connString;

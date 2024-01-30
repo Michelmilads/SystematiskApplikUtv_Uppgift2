@@ -1,23 +1,49 @@
+using Microsoft.AspNetCore.Authentication.JwtBearer;
+using Microsoft.IdentityModel.Tokens;
+using System.Text;
+using SystematiskApplikUtv_Uppgift2.Repository;
+using SystematiskApplikUtv_Uppgift2.Repository.Interfaces;
+using SystematiskApplikUtv_Uppgift2.Repository.Repos;
+
 var builder = WebApplication.CreateBuilder(args);
-
-// Add services to the container.
-
-builder.Services.AddControllers();
-// Learn more about configuring Swagger/OpenAPI at https://aka.ms/aspnetcore/swashbuckle
-builder.Services.AddEndpointsApiExplorer();
-builder.Services.AddSwaggerGen();
 
 var app = builder.Build();
 
-// Configure the HTTP request pipeline.
-if (app.Environment.IsDevelopment())
-{
-    app.UseSwagger();
-    app.UseSwaggerUI();
-}
-
+app.UseRouting();
+app.UseAuthentication();
 app.UseAuthorization();
 
-app.MapControllers();
+app.UseEndpoints(endpoints => { endpoints.MapControllers(); });
+
+app.UseSwagger();
+app.UseSwaggerUI();
+
+builder.Services.AddAuthentication(opt =>
+{
+    opt.DefaultAuthenticateScheme = JwtBearerDefaults.AuthenticationScheme;
+    opt.DefaultChallengeScheme = JwtBearerDefaults.AuthenticationScheme;
+})
+.AddJwtBearer(opt =>
+{
+    opt.TokenValidationParameters = new TokenValidationParameters
+    {
+        ValidateIssuer = true,
+        ValidateAudience = true,
+        ValidateLifetime = true,
+        ValidateIssuerSigningKey = true,
+        ValidIssuer = "http://localhost:5265",
+        ValidAudience = "http://localhost:5265",
+        IssuerSigningKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes("Kaninburenärborta2001"))
+    };
+});
 
 app.Run();
+builder.Services.AddControllers();
+builder.Services.AddSwaggerGen();
+builder.Services.AddScoped<IRatingRepo, RatingRepo>();
+builder.Services.AddScoped<IFoodCategoryRepo, FoodCategoryRepo>();
+builder.Services.AddScoped<IRecipeRepo, RecipeRepo>();
+builder.Services.AddScoped<IUserRepo, UserRepo>();
+builder.Services.AddSingleton<IDatabaseConnection, DatabaseConnection>();
+
+

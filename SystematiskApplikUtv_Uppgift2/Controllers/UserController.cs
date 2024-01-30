@@ -61,15 +61,15 @@ namespace SystematiskApplikUtv_Uppgift2.Controllers
                 //Kolla att Anv ID som uppdateras är samma som den som uppdaterar
                 if (_userRepo.GetUserThruID(userID).UserID != tokenUserID)
                 {
-                    return Forbid("Not authorized to update this rating.");
+                    return Forbid("Not Authorized To Update This Rating Since You Are Not The Owner.");
                 }
 
                 _userRepo.UpdateUser(tokenUserID, updateUser);
-                return Ok("User Updated Successfully.");
+                return Ok("Successfully Updated User.");
             }
             catch (Exception ex)
             {
-                return StatusCode(StatusCodes.Status500InternalServerError, "Error: Could Not Update The User");
+                return StatusCode(StatusCodes.Status500InternalServerError, "Error: Could Not Update The User.");
             }
         }
 
@@ -85,11 +85,11 @@ namespace SystematiskApplikUtv_Uppgift2.Controllers
                 // check if the user ID of the recipe you're updating matches the person who updates it.
                 if (_userRepo.GetUserThruID(userID).UserID != tokenUserID)
                 {
-                    return Forbid("Not authorized to delete this rating.");
+                    return Forbid("Not Authorized To Delete This Rating Since You Are Not The Owner.");
                 }
 
                 _userRepo.DeleteUser(userID);
-                return Ok("User deleted successfully.");
+                return Ok("Successfully Deleted User.");
             }
             catch (Exception ex)
             {
