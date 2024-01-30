@@ -19,8 +19,8 @@ namespace SystematiskApplikUtv_Uppgift2.Repository.Repos
             using (var db = _connString.GetConnection())
             {
                 var parameters = new DynamicParameters();
-                parameters.Add("@Username", user.UserName);
-                parameters.Add("@Password", user.PassWord);
+                parameters.Add("@UserName", user.UserName);
+                parameters.Add("@PassWord", user.PassWord);
                 parameters.Add("@Email", user.Email);
 
                 db.Execute("CreateUser", parameters, commandType: CommandType.StoredProcedure);
@@ -33,8 +33,8 @@ namespace SystematiskApplikUtv_Uppgift2.Repository.Repos
             {
                 var parameters = new DynamicParameters();
                 parameters.Add("@UserID", userID);
-                parameters.Add("@Username", updateUser.UserName);
-                parameters.Add("@Password", updateUser.PassWord);
+                parameters.Add("@UserName", updateUser.UserName);
+                parameters.Add("@PassWord", updateUser.PassWord);
                 parameters.Add("@Email", updateUser.Email);
 
                 db.Execute("UpdateUser", parameters, commandType: CommandType.StoredProcedure);
@@ -57,8 +57,8 @@ namespace SystematiskApplikUtv_Uppgift2.Repository.Repos
             using (var db = _connString.GetConnection())
             {
                 var parameters = new DynamicParameters();
-                parameters.Add("@Username", user.UserName);
-                parameters.Add("@Password", user.PassWord);
+                parameters.Add("@UserName", user.UserName);
+                parameters.Add("@PassWord", user.PassWord);
 
                 return db.QuerySingleOrDefault<User>("Login", parameters, commandType: CommandType.StoredProcedure);
             }
@@ -71,7 +71,7 @@ namespace SystematiskApplikUtv_Uppgift2.Repository.Repos
                 var parameters = new DynamicParameters();
                 parameters.Add("@UserID", userID);
 
-                return db.QuerySingleOrDefault<User>("GetUserByID", parameters, commandType: CommandType.StoredProcedure);
+                return db.QuerySingleOrDefault<User>("GetUserThruID", parameters, commandType: CommandType.StoredProcedure);
             }
         }
     }

@@ -77,7 +77,7 @@ namespace SystematiskApplikUtv_Uppgift2.Repository.Repos
             using (var db = _connString.GetConnection())
             {
                 var parameters = new DynamicParameters();
-                parameters.Add("@RatedThruUserID", userID);
+                parameters.Add("@RatedByUserID", userID);
 
                 return db.QueryFirstOrDefault<Ratings>("GetRatingThruUserID", parameters, commandType: CommandType.StoredProcedure);
             }

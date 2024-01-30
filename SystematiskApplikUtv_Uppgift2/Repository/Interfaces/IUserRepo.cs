@@ -6,7 +6,7 @@ namespace SystematiskApplikUtv_Uppgift2.Repository.Interfaces
     {
         void CreateUser(User user);
         void UpdateUser(int userID, User updateUser);
-        void DeleteUser(int iD);
+        void DeleteUser(int id);
         User AuthenticateUser(User user);
         User GetUserThruID(int userID);
     }

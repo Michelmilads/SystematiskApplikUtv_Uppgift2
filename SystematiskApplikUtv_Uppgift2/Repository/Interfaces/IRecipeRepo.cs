@@ -8,6 +8,6 @@ namespace SystematiskApplikUtv_Uppgift2.Repository.Interfaces
         void UpdateRecipe(int recipeID, Recipe updateRecipe);
         void DeleteRecipe(int recipeID);
         Recipe GetRecipeThruID(int recipeID);
-        List<Recipe> SearchRecipesThruTitle(string searchWord); // string title
+        List<Recipe> SearchRecipesThruTitle(string searchWord);
     }
 }

@@ -7,17 +7,6 @@ using SystematiskApplikUtv_Uppgift2.Repository.Repos;
 
 var builder = WebApplication.CreateBuilder(args);
 
-var app = builder.Build();
-
-app.UseRouting();
-app.UseAuthentication();
-app.UseAuthorization();
-
-app.UseEndpoints(endpoints => { endpoints.MapControllers(); });
-
-app.UseSwagger();
-app.UseSwaggerUI();
-
 builder.Services.AddAuthentication(opt =>
 {
     opt.DefaultAuthenticateScheme = JwtBearerDefaults.AuthenticationScheme;
@@ -37,7 +26,7 @@ builder.Services.AddAuthentication(opt =>
     };
 });
 
-app.Run();
+
 builder.Services.AddControllers();
 builder.Services.AddSwaggerGen();
 builder.Services.AddScoped<IRatingRepo, RatingRepo>();
@@ -46,4 +35,17 @@ builder.Services.AddScoped<IRecipeRepo, RecipeRepo>();
 builder.Services.AddScoped<IUserRepo, UserRepo>();
 builder.Services.AddSingleton<IDatabaseConnection, DatabaseConnection>();
 
+
+var app = builder.Build();
+
+app.UseRouting();
+app.UseAuthentication();
+app.UseAuthorization();
+
+app.UseEndpoints(endpoints => { endpoints.MapControllers(); });
+
+app.UseSwagger();
+app.UseSwaggerUI();
+
+app.Run();
 

@@ -22,7 +22,7 @@ namespace SystematiskApplikUtv_Uppgift2.Repository.Repos
                 var parameters = new DynamicParameters();
                 parameters.Add("@RecipeID", recipeID);
 
-                return db.QueryFirstOrDefault<Recipe>("GetRecipeById", parameters, commandType: CommandType.StoredProcedure);
+                return db.QueryFirstOrDefault<Recipe>("GetRecipeThruID", parameters, commandType: CommandType.StoredProcedure);
             }
         }
 
@@ -55,7 +55,7 @@ namespace SystematiskApplikUtv_Uppgift2.Repository.Repos
                 parameters.Add("@CategoryID", updateRecipe.CategoryID);
 
                 // debugging
-                Console.WriteLine($"Recipe ID: {recipeID}");
+                Console.WriteLine($"RecipeID: {recipeID}");
                 Console.WriteLine($"Title: {updateRecipe.Title}");
                 Console.WriteLine($"Description: {updateRecipe.Description}");
                 Console.WriteLine($"Ingredients: {updateRecipe.Ingredients}");
