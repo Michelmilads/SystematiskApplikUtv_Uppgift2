@@ -46,6 +46,8 @@ namespace SystematiskApplikUtv_Uppgift2.Controllers
             }
             catch (Exception ex)
             {
+                _logger.LogError(ex.Message);
+                _logger.LogInformation(ex.StackTrace);
                 return Problem(ex.Message);
             }
         }
@@ -99,10 +101,12 @@ namespace SystematiskApplikUtv_Uppgift2.Controllers
                 };
 
                 _recipeRepo.UpdateRecipe(newRecipe);
-                return StatusCode(StatusCodes.Status200OK, "Successfully Updated Recipe.");
+                return Ok();
             }
             catch (Exception ex)
             {
+                _logger.LogError(ex.Message);
+                _logger.LogInformation(ex.StackTrace);
                 return Problem(ex.Message);
             }
 
@@ -150,7 +154,9 @@ namespace SystematiskApplikUtv_Uppgift2.Controllers
             }
             catch (Exception ex)
             {
-                return StatusCode(StatusCodes.Status500InternalServerError, "Error: Couldn't perform recipe search");
+                _logger.LogError(ex.Message);
+                _logger.LogInformation(ex.StackTrace);
+                return Problem(ex.Message);
             }
         }
 

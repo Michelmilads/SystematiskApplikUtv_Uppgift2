@@ -25,7 +25,7 @@ namespace SystematiskApplikUtv_Uppgift2.Controllers
         //Skapa anv
         [HttpPost]
         [AllowAnonymous]
-        public IActionResult CreateUser([FromBody] User user)
+        public IActionResult CreateUser([FromQuery] User user)
         {
             if (user == null)
             {

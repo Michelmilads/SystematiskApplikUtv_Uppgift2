@@ -39,7 +39,7 @@ namespace SystematiskApplikUtv_Uppgift2.Repository.Repos
             using (SqlConnection db = new(DatabaseConnection.connString))
             {
                 var parameters = new DynamicParameters();
-                parameters.Add("@RecipeID", recipe);
+                parameters.Add("@RecipeID", recipe.RecipeID);
                 parameters.Add("@Title", recipe.Title);
                 parameters.Add("@Description", recipe.Description);
                 parameters.Add("@Ingredients", recipe.Ingredients);
@@ -68,7 +68,7 @@ namespace SystematiskApplikUtv_Uppgift2.Repository.Repos
                 var parameters = new DynamicParameters();
                 parameters.Add("@SearchCondition", searchKeyWord);
 
-                return db.Query<Recipe>("SearchRecipes", parameters, commandType: CommandType.StoredProcedure).ToList();
+                return db.Query<Recipe>("SearchRecipeThruTitle", parameters, commandType: CommandType.StoredProcedure).ToList();
             }
         }
     }
