@@ -4,19 +4,8 @@ using static SystematiskApplikUtv_Uppgift2.Repository.DatabaseConnection;
 
 namespace SystematiskApplikUtv_Uppgift2.Repository
 {
-    public class DatabaseConnection : IDatabaseConnection
+    public class DatabaseConnection
     {
-        
-        private readonly string? _connString;
-
-        public DatabaseConnection(IConfiguration config)
-        {
-            _connString = config.GetConnectionString("FoodRecipes");
-        }
-
-        public SqlConnection GetConnection()
-        {
-           return new SqlConnection(_connString);
-        }   
+        public static readonly string connString = "Data Source=Michel;Initial Catalog=FoodRecipes;Integrated Security=true;trustservercertificate=true";
     }
 }

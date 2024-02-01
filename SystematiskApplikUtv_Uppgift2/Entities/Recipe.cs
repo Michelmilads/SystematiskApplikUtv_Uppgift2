@@ -8,8 +8,5 @@
         public string? Ingredients { get; set; }
         public int UserID { get; set; }
         public int CategoryID { get; set; }
-
-        public User User { get; set; }
-        public FoodCategory Category { get; set; }
     }
 }

@@ -4,6 +4,8 @@ using Microsoft.AspNetCore.Mvc;
 using System.Security.Claims;
 using SystematiskApplikUtv_Uppgift2.Entities;
 using SystematiskApplikUtv_Uppgift2.Repository.Interfaces;
+using SystematiskApplikUtv_Uppgift2.Repository.Repos;
+using SystematiskApplikUtv_Uppgift2.Requests;
 
 namespace SystematiskApplikUtv_Uppgift2.Controllers
 {
@@ -13,37 +15,42 @@ namespace SystematiskApplikUtv_Uppgift2.Controllers
     public class RecipeController : ControllerBase
     {
         private readonly IRecipeRepo _recipeRepo;
+        private readonly ILogger<UserController> _logger;
 
-        public RecipeController(IRecipeRepo recipeRepo)
+        public RecipeController(IRecipeRepo recipeRepo, ILogger<UserController> logger)
         {
             _recipeRepo = recipeRepo;
+            _logger = logger;
         }
 
 
         [HttpPost]
-        public IActionResult CreateRecipe([FromBody] Recipe recipe)
+        public IActionResult CreateRecipe([FromQuery] NewRecipeRequest request)
         {
-            if (recipe == null)
-            {
-                return BadRequest("Error: Invalid Recipe Data.");
-            }
+            if (!ModelState.IsValid)
+                return BadRequest();
 
             try
             {
-                var userID = int.Parse(User.FindFirst(ClaimTypes.NameIdentifier)?.Value);
+                Recipe newRecipe = new()
+                {
+                    Title = request.Title,
+                    Description = request.Description,
+                    Ingredients = request.Ingredients,
+                    UserID = GetCurrentUser(),
+                    CategoryID = request.CategoryID
+                };
 
-                recipe.UserID = userID;
-
-                _recipeRepo.CreateRecipe(recipe);
-                return StatusCode(StatusCodes.Status201Created, "The Recipe Has Been Created.");
+                _recipeRepo.CreateRecipe(newRecipe);
+                return Ok();
             }
             catch (Exception ex)
             {
-                return StatusCode(StatusCodes.Status500InternalServerError, "Error: Could Not Create The Recipe.");
+                return Problem(ex.Message);
             }
         }
 
-        [HttpGet("{recipeID}")]
+        [HttpGet]
         [AllowAnonymous]
         public IActionResult GetRecipeThruID(int recipeID)
         {
@@ -60,37 +67,43 @@ namespace SystematiskApplikUtv_Uppgift2.Controllers
             }
             catch (Exception ex)
             {
-                return StatusCode(StatusCodes.Status500InternalServerError, "Error: Could Not Fetch Recipe.");
+                return Problem(ex.Message);
+               // return StatusCode(StatusCodes.Status500InternalServerError, "Error: Could Not Fetch Recipe.");
             }
         }
 
-        [HttpPatch("{recipeID}")]
-        public IActionResult UpdateRecipe(int recipeID, [FromBody] Recipe updateRecipe)
+        [HttpPatch]
+        public IActionResult UpdateRecipe([FromQuery] UpdateRecipeRequest request)
         {
-            if (updateRecipe == null)
-            {
-                return BadRequest("Error: Recipe Data Invalid.");
-            }
+            if (!ModelState.IsValid)
+                return BadRequest();
 
             try
             {
-                var userID = int.Parse(User.FindFirst(ClaimTypes.NameIdentifier)?.Value);
+                var recipe = _recipeRepo.GetRecipeThruID(request.RecipeID);
 
-                updateRecipe.UserID = userID;
-
-                if (recipeID == null)
+                if (recipe == null)
                     return NotFound("Recipe Can Not Be Found.");
 
-                if (_recipeRepo.GetRecipeThruID(recipeID).UserID != userID)
-                    return Forbid("Not Authorized To Update This Rating Since You Are Not The Owner.");
+                if (recipe.UserID != GetCurrentUser())
+                    return Forbid("Not Authorized To Update This Recipe Since You Are Not The Owner.");
 
+                var newRecipe = new Recipe()
+                {
+                    RecipeID = request.RecipeID,
+                    Title = request.Title,
+                    Description = request.Description,
+                    Ingredients = request.Ingredients,
+                    UserID = recipe.UserID,
+                    CategoryID = recipe.CategoryID,
+                };
 
-                _recipeRepo.UpdateRecipe(recipeID, updateRecipe);
+                _recipeRepo.UpdateRecipe(newRecipe);
                 return StatusCode(StatusCodes.Status200OK, "Successfully Updated Recipe.");
             }
             catch (Exception ex)
             {
-                return StatusCode(StatusCodes.Status500InternalServerError, "Error: Could Not Update The Recipe.");
+                return Problem(ex.Message);
             }
 
         }
@@ -100,9 +113,12 @@ namespace SystematiskApplikUtv_Uppgift2.Controllers
         {
             try
             {
-                var userID = int.Parse(User.FindFirst(ClaimTypes.NameIdentifier)?.Value);
+                var recipe = _recipeRepo.GetRecipeThruID(recipeID);
 
-                if (_recipeRepo.GetRecipeThruID(recipeID).UserID != userID)
+                if (recipe == null)
+                    return NotFound();
+
+                if (recipe.UserID != GetCurrentUser())
                 {
                     return Forbid("Not Authorized To Delete This Rating Since You Are Not The Owner");
                 }
@@ -112,7 +128,7 @@ namespace SystematiskApplikUtv_Uppgift2.Controllers
             }
             catch (Exception ex)
             {
-                return StatusCode(StatusCodes.Status500InternalServerError, "Error: Could Not Delete The Recipe.");
+                return Problem(ex.Message);
             }
         }
 
@@ -136,6 +152,19 @@ namespace SystematiskApplikUtv_Uppgift2.Controllers
             {
                 return StatusCode(StatusCodes.Status500InternalServerError, "Error: Couldn't perform recipe search");
             }
+        }
+
+        private int GetCurrentUser()
+        {
+            var idClaim = User.FindFirst("UserID");
+            if (idClaim == null)
+                return 0;
+
+            var parsed = int.TryParse(idClaim.Value, out int id);
+            if (parsed)
+                return id;
+
+            return 0;
         }
     }
 }

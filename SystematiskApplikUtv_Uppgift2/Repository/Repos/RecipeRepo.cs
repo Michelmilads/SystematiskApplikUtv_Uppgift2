@@ -1,4 +1,5 @@
 ﻿using Dapper;
+using Microsoft.Data.SqlClient;
 using System.Data;
 using SystematiskApplikUtv_Uppgift2.Entities;
 using SystematiskApplikUtv_Uppgift2.Repository.Interfaces;
@@ -6,18 +7,10 @@ using SystematiskApplikUtv_Uppgift2.Repository.Interfaces;
 namespace SystematiskApplikUtv_Uppgift2.Repository.Repos
 {
     public class RecipeRepo : IRecipeRepo
-    {
-        private readonly IDatabaseConnection _connString;
-
-        public RecipeRepo(IDatabaseConnection connString)
-        {
-            _connString = connString;
-        }
-
-
+    { 
         public Recipe GetRecipeThruID(int recipeID)
         {
-            using (var db = _connString.GetConnection())
+            using (SqlConnection db = new(DatabaseConnection.connString))
             {
                 var parameters = new DynamicParameters();
                 parameters.Add("@RecipeID", recipeID);
@@ -28,7 +21,7 @@ namespace SystematiskApplikUtv_Uppgift2.Repository.Repos
 
         public void CreateRecipe(Recipe recipe)
         {
-            using (var db = _connString.GetConnection())
+            using (SqlConnection db = new(DatabaseConnection.connString))
             {
                 var parameters = new DynamicParameters();
                 parameters.Add("@Title", recipe.Title);
@@ -41,35 +34,25 @@ namespace SystematiskApplikUtv_Uppgift2.Repository.Repos
             }
         }
 
-        public void UpdateRecipe(int recipeID, Recipe updateRecipe)
+        public void UpdateRecipe(Recipe recipe)
         {
-            // Check authorization here.
-
-            using (var db = _connString.GetConnection())
+            using (SqlConnection db = new(DatabaseConnection.connString))
             {
                 var parameters = new DynamicParameters();
-                parameters.Add("@RecipeID", recipeID);
-                parameters.Add("@Title", updateRecipe.Title);
-                parameters.Add("@Description", updateRecipe.Description);
-                parameters.Add("@Ingredients", updateRecipe.Ingredients); // ändra category kan vara bra att lägga till
-                parameters.Add("@CategoryID", updateRecipe.CategoryID);
-
-                // debugging
-                Console.WriteLine($"RecipeID: {recipeID}");
-                Console.WriteLine($"Title: {updateRecipe.Title}");
-                Console.WriteLine($"Description: {updateRecipe.Description}");
-                Console.WriteLine($"Ingredients: {updateRecipe.Ingredients}");
-                Console.WriteLine($"CategoryID: {updateRecipe.CategoryID}");
+                parameters.Add("@RecipeID", recipe);
+                parameters.Add("@Title", recipe.Title);
+                parameters.Add("@Description", recipe.Description);
+                parameters.Add("@Ingredients", recipe.Ingredients);
+                parameters.Add("@CategoryID", recipe.CategoryID);                                                                                                                                               
 
                 db.Execute("UpdateRecipe", parameters, commandType: CommandType.StoredProcedure);
             }
-
 
         }
 
         public void DeleteRecipe(int recipeID)
         {
-            using (var db = _connString.GetConnection())
+            using (SqlConnection db = new(DatabaseConnection.connString))
             {
                 var parameters = new DynamicParameters();
                 parameters.Add("@RecipeID", recipeID);
@@ -80,7 +63,7 @@ namespace SystematiskApplikUtv_Uppgift2.Repository.Repos
 
         public List<Recipe> SearchRecipesThruTitle(string searchKeyWord)
         {
-            using (var db = _connString.GetConnection())
+            using (SqlConnection db = new(DatabaseConnection.connString))
             {
                 var parameters = new DynamicParameters();
                 parameters.Add("@SearchCondition", searchKeyWord);

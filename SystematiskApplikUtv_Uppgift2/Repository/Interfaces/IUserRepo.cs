@@ -5,9 +5,9 @@ namespace SystematiskApplikUtv_Uppgift2.Repository.Interfaces
     public interface IUserRepo
     {
         void CreateUser(User user);
-        void UpdateUser(int userID, User updateUser);
+        void UpdateUser(int userID, string passWord);
         void DeleteUser(int id);
-        User AuthenticateUser(User user);
+        User AuthenticateUser(string userName, string passWord);
         User GetUserThruID(int userID);
     }
 }

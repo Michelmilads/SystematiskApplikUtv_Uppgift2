@@ -6,8 +6,5 @@
         public int RatingValue { get; set; }
         public int RecipeID { get; set; }
         public int RatedByUserID { get; set; }
-
-        public Recipe Recipe {  get; set; }
-        public User RatedByUser { get; set; }
     }
 }

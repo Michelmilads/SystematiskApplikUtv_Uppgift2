@@ -4,6 +4,7 @@ using Microsoft.AspNetCore.Mvc;
 using System.Security.Claims;
 using SystematiskApplikUtv_Uppgift2.Entities;
 using SystematiskApplikUtv_Uppgift2.Repository.Interfaces;
+using SystematiskApplikUtv_Uppgift2.Requests;
 
 namespace SystematiskApplikUtv_Uppgift2.Controllers
 {
@@ -13,44 +14,46 @@ namespace SystematiskApplikUtv_Uppgift2.Controllers
     public class RatingController : ControllerBase
     {
         private readonly IRatingRepo _ratingRepo;
+        private readonly IRecipeRepo _recipeRepo;
+        private readonly ILogger<RatingController> _logger;
 
-        public RatingController(IRatingRepo ratingRepo)
+        public RatingController(IRatingRepo ratingRepo, IRecipeRepo recipeRepo, ILogger<RatingController> logger)
         {
             _ratingRepo = ratingRepo;
+            _recipeRepo = recipeRepo;
+            _logger = logger;
         }
 
         [HttpPost]
-        public IActionResult CreateRating([FromBody] Ratings ratings)
+        public IActionResult CreateRating([FromQuery] NewRatingRequest request)
         {
-            if (ratings == null)
-            {
-                return BadRequest("Error: Rating Data Invalid.");
-            }
-            if (ratings.RatingValue > 5 || ratings.RatingValue < 1) //Kollar om betyget är mellan 1 & 5
-            {
-                return BadRequest("Error: Rating Data Invalid.");
-            }
-
+            if (! ModelState.IsValid)
+                return BadRequest();
 
             try
             {
-                var tokenUserID = int.Parse(User.FindFirst(ClaimTypes.NameIdentifier)?.Value);
+                var recipe = _recipeRepo.GetRecipeThruID(request.RecipeID);
+                if (recipe == null)
+                    return NotFound();
 
-                // Check if you've already rated the recipe before
-                var checkIfPreviousRating = _ratingRepo.GetRatingThruUserID(tokenUserID);
-                if (checkIfPreviousRating != null) //!rating.RatingValue.HasValue
+                if (request.RatingValue < 1 || request.RatingValue > 5)
+                    return BadRequest();
+
+                var userRatings = _ratingRepo.GetRatingThruUserID(GetCurrentUser());
+                if (userRatings.FirstOrDefault(r => r.RecipeID == recipe.RecipeID) != null)
+                    return Forbid();
+
+                if (recipe.UserID == GetCurrentUser())
+                    return Forbid();
+
+                Ratings newRating = new()
                 {
-                    return Forbid("This Recipe Has Been Already Been rated By You.");
-                }
+                    RatingValue = request.RatingValue,
+                    RecipeID = request.RecipeID,
+                    RatedByUserID = GetCurrentUser()
+                };
 
-                // Check the recipe being rated are not your own
-                if (_ratingRepo.CheckIfUserIsOwner(ratings.RecipeID, tokenUserID).Any())
-                {
-                    return Forbid("You Are Not Allowed To Rate Your Own Recipe.");
-                }
-
-
-                _ratingRepo.CreateRating(ratings);
+                _ratingRepo.CreateRating(newRating);
                 return Ok("Rating Created Successfully");
             }
             catch (Exception ex)
@@ -80,54 +83,40 @@ namespace SystematiskApplikUtv_Uppgift2.Controllers
             }
         }
 
-        [HttpPatch("{ratingID}")]
-        public IActionResult UpdateRating(int ratingID, [FromBody] Ratings updateRating)
-        {
-            if (updateRating == null)
-            {
-                return BadRequest("Error: Rating Data Invalid");
-            }
-
-            try
-            {
-                var ratedThruUserID = int.Parse(User.FindFirst(ClaimTypes.NameIdentifier)?.Value);
-
-                updateRating.RatedByUserID = ratedThruUserID;
-
-                if (_ratingRepo.GetRatingThruRatingID(ratingID).RatedByUserID != ratedThruUserID)
-                {
-                    return Forbid("Not Authorized To Update This Recipe Since You Are Not The Owner.");
-                }
-
-
-                _ratingRepo.UpdateRatings(ratingID, updateRating);
-                return Ok("Successfully Updated Rating.");
-            }
-            catch (Exception ex)
-            {
-                return StatusCode(StatusCodes.Status500InternalServerError, "Error: Could Not Update The Rating.");
-            }
-        }
-
         [HttpDelete("{ratingID}")]
         public IActionResult DeleteRating(int ratingID)
         {
             try
             {
-                var userID = int.Parse(User.FindFirst(ClaimTypes.NameIdentifier)?.Value);
+                var rating = _ratingRepo.GetRatingThruRatingID(ratingID);
+                if (rating == null)
+                    return NotFound();
 
-                if (_ratingRepo.GetRatingThruRatingID(ratingID).RatedByUserID != userID)
-                {
-                    return Forbid("Not Authorized To Delete This Rating Since You Are Not The Owner.");
-                }
+                if (rating.RatedByUserID != GetCurrentUser())
+                    return Unauthorized();
 
                 _ratingRepo.DeleteRating(ratingID);
-                return Ok("Successfully Deleted Rating.");
+                    return Ok("Successfully Deleted Rating.");
             }
             catch (Exception ex)
             {
-                return StatusCode(StatusCodes.Status500InternalServerError, "Error: Could Not Delete The Rating.");
+                _logger.LogError(ex.Message);
+                _logger.LogInformation(ex.StackTrace);
+                    return Problem(ex.Message);
             }
+        }
+
+        private int GetCurrentUser()
+        {
+            var idClaim = User.FindFirst("UserID");
+            if (idClaim == null)
+                return 0;
+
+            var parsed = int.TryParse(idClaim.Value, out int id);
+            if (parsed)
+                return id;
+
+            return 0;
         }
     }
 }
